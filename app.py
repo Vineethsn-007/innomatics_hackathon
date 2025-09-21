@@ -1,6 +1,32 @@
 import streamlit as st
+
+# Test OpenCV import first
+try:
+    import cv2
+    st.success("✅ OpenCV imported successfully!")
+except ImportError as e:
+    st.error(f"""
+    ❌ **OpenCV Import Failed**
+    
+    Error: {str(e)}
+    
+    **Required files:**
+    1. `requirements.txt` with `opencv-python-headless==4.8.1.78`
+    2. `packages.txt` with system dependencies
+    3. `runtime.txt` with `python-3.9`
+    
+    **Please ensure these files exist in your repository root.**
+    """)
+    st.info("""
+    **Quick Fix:**
+    1. Add the files mentioned above
+    2. Commit and push to GitHub
+    3. Streamlit will automatically redeploy
+    """)
+    st.stop()
+
+# Continue with other imports only if OpenCV works
 import numpy as np
-import cv2
 from PIL import Image
 import pandas as pd
 import io
