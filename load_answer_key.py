@@ -1,31 +1,47 @@
 import pandas as pd
 import re
 
+# Map spreadsheet headers to detector subject names
+SUBJECT_MAP = {
+    "PYTHON": "PYTHON",
+    "EDA": "DATA ANALYSIS",
+    "SQL": "MySQL",
+    "POWER BI": "POWER BI",
+    "SATISTICS": "Adv STATS",   # common misspelling seen in sheet
+    "STATISTICS": "Adv STATS",
+}
+
 def load_answer_key_from_sheet(excel_file, sheet_name="Set - A"):
     """
     Reads answer key from Excel where cells are like:
-    '1 - a' or '16 - a,b,c,d' or '81. a'
-    Returns dict {"Python_Q1": "A", "Python_Q16": "A,B,C,D", ...}
+      '1 - a' or '16 - a,b,c,d' or '81. a' or '21 : b'
+    Returns dict like {"PYTHON Q1": "A", "DATA ANALYSIS Q21": "B", ...}
+    Normalizes letters to uppercase and restricts to A-D.
     """
     df = pd.read_excel(excel_file, sheet_name=sheet_name)
     answer_key = {}
 
     for col in df.columns:
-        subject = str(col).strip()
+        raw_subject = str(col).strip()
+        subject = SUBJECT_MAP.get(raw_subject.upper().strip(), raw_subject.upper().strip())
+
         for cell in df[col].dropna():
-            cell = str(cell).strip()
+            s = str(cell).strip()
+            # Support "QNo - answers" or "QNo. answers" or "QNo : answers"
+            m = re.match(r"(\d+)\s*[\-\.]\s*(.+)", s)
+            if not m:
+                m = re.match(r"(\d+)\s*[:]\s*(.+)", s)
+            if not m:
+                print(f"Skipping cell '{s}': format not recognized")
+                continue
 
-            # Match "QNo - answers" OR "QNo. answers"
-            match = re.match(r"(\d+)\s*[\-\.]\s*(.+)", cell)
-            if match:
-                qno = match.group(1)
-                ans = match.group(2).strip().upper()
-                # Normalize multiple answers (a,b,c,d -> A,B,C,D)
-                ans = ",".join([a.strip().upper() for a in ans.split(",")])
-                key = f"{subject}_Q{qno}"
-                answer_key[key] = ans
-            else:
-                print(f"Skipping cell {cell}: format not recognized")
+            qno = m.group(1)
+            ans = m.group(2).strip()
+            # Normalize multiple answers: split on comma or whitespace, keep A-D only
+            parts = [a.strip().upper() for a in re.split(r"[,\s]+", ans) if a.strip()]
+            parts = [p for p in parts if p in ("A","B","C","D")]
+            ans_norm = ",".join(parts)
+            key = f"{subject} Q{qno}"
+            answer_key[key] = ans_norm
 
-    print(f"✅ Loaded {len(answer_key)} answers from {sheet_name}")
     return answer_key
