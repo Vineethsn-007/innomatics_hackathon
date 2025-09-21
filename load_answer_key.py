@@ -5,10 +5,10 @@ import re
 SUBJECT_MAP = {
     "PYTHON": "PYTHON",
     "EDA": "DATA ANALYSIS",
-    "SQL": "MySQL",
+    "SQL": "MySQL", 
     "POWER BI": "POWER BI",
-    "SATISTICS": "Adv STATS",   # common misspelling seen in sheet
-    "STATISTICS": "Adv STATS",
+    "SATISTICS": "Adv STATS",   # Set-A typo: Satistics -> SATISTICS
+    "STATISTICS": "Adv STATS",  # Set-B correct: Statistics -> STATISTICS
 }
 
 def load_answer_key_from_sheet(excel_file, sheet_name="Set - A"):
