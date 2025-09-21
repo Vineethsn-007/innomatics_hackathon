@@ -19,7 +19,6 @@ except ImportError as e:
     3. `runtime.txt` with `python-3.9`
     """)
     st.stop()
-    opencv_available = False
 
 # Continue with other imports
 import numpy as np
@@ -78,10 +77,12 @@ if img_file is not None and key_file is not None:
             with tab1:
                 subcol1, subcol2 = st.columns(2)
                 with subcol1:
-                    st.image(image, caption="Original OMR Sheet", use_container_width=True)
+                    # FIXED: Remove use_container_width parameter for images
+                    st.image(image, caption="Original OMR Sheet", width=400)
                 with subcol2:
                     if binary is not None:
-                        st.image(binary, caption="Processed Binary Image", use_container_width=True, channels="GRAY")
+                        # FIXED: Remove use_container_width parameter
+                        st.image(binary, caption="Processed Binary Image", width=400, channels="GRAY")
             
             with tab2:
                 st.write("**Detected Answers:**")
@@ -138,6 +139,7 @@ if img_file is not None and key_file is not None:
                 
                 score_df = pd.DataFrame(score_data)
                 
+                # Format dataframe with conditional styling
                 try:
                     import matplotlib
                     styled_df = score_df.style.format({
@@ -145,15 +147,21 @@ if img_file is not None and key_file is not None:
                         "Out of": ".0f", 
                         "Percentage": ".1f"
                     }).background_gradient(subset="Percentage", cmap="RdYlGn", vmin=0, vmax=100)
+                    # Use try/except for dataframe parameter compatibility
+                    try:
+                        st.dataframe(styled_df, use_container_width=True)
+                    except:
+                        st.dataframe(styled_df)
                 except ImportError:
                     styled_df = score_df.style.format({
                         "Score": ".0f", 
                         "Out of": ".0f", 
                         "Percentage": ".1f"
                     })
-                
-                # FIXED: Use use_container_width instead of use_column_width
-                st.dataframe(styled_df, use_container_width=True)
+                    try:
+                        st.dataframe(styled_df, use_container_width=True)
+                    except:
+                        st.dataframe(styled_df)
         
         with col2:
             st.subheader("📈 Quick Stats")
